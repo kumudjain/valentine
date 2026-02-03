@@ -40,36 +40,17 @@
             animation: pulse 2s ease-in-out infinite;
         }
 
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
-            
-            button {
-                padding: 15px 35px;
-                font-size: 1.2rem;
-            }
-            
-            .container {
-                padding: 20px;
-            }
-            
-            .success-message {
-                font-size: 1.5rem;
-            }
-        }
-
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
 
-        .buttons {
+        .button-wrapper {
             display: flex;
-            gap: 30px;
             justify-content: center;
+            align-items: center;
+            gap: 30px;
             margin-top: 40px;
-            position: relative;
             min-height: 80px;
         }
 
@@ -100,9 +81,6 @@
         #noBtn {
             background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);
             color: white;
-            position: fixed;
-            transition: all 0.3s ease;
-            z-index: 1000;
         }
 
         #noBtn:hover {
@@ -124,13 +102,6 @@
             max-width: 500px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        @media (max-width: 768px) {
-            video {
-                max-width: 90vw;
-                max-height: 60vh;
-            }
         }
 
         .success-message {
@@ -183,13 +154,37 @@
             50% { opacity: 1; }
             100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
         }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            button {
+                padding: 15px 35px;
+                font-size: 1.2rem;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .success-message {
+                font-size: 1.5rem;
+            }
+
+            video {
+                max-width: 90vw;
+                max-height: 60vh;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>💖 Tripti, Will You Be My Valentine? 💖</h1>
         
-        <div class="buttons" id="buttonContainer">
+        <div class="button-wrapper" id="buttonWrapper">
             <button id="yesBtn">Yes! 😍</button>
             <button id="noBtn">No 😢</button>
         </div>
@@ -199,9 +194,8 @@
         </div>
 
         <div class="video-container" id="videoContainer">
-            <video id="valentineVideo" controls autoplay loop>
+            <video id="valentineVideo" controls autoplay muted playsinline loop>
                 <source src="valentine-video.mp4" type="video/mp4">
-                <!-- Alternative: if you have the video in a different format -->
                 <source src="valentine-video.webm" type="video/webm">
                 Your browser does not support the video tag.
             </video>
@@ -211,22 +205,31 @@
     <script>
         const yesBtn = document.getElementById('yesBtn');
         const noBtn = document.getElementById('noBtn');
-        const buttonContainer = document.getElementById('buttonContainer');
+        const buttonWrapper = document.getElementById('buttonWrapper');
         const successMessage = document.getElementById('successMessage');
         const videoContainer = document.getElementById('videoContainer');
         const valentineVideo = document.getElementById('valentineVideo');
 
+        // Track if button has been moved
+        let buttonMoved = false;
+
         // Function to move the "No" button to a random position
         function moveNoButton() {
+            if (!buttonMoved) {
+                // First time - switch to fixed positioning
+                noBtn.style.position = 'fixed';
+                buttonMoved = true;
+            }
+            
             const btnRect = noBtn.getBoundingClientRect();
             
             // Calculate maximum positions to keep button within viewport
-            const maxX = window.innerWidth - btnRect.width - 20; // 20px margin
-            const maxY = window.innerHeight - btnRect.height - 20; // 20px margin
+            const maxX = window.innerWidth - btnRect.width - 20;
+            const maxY = window.innerHeight - btnRect.height - 20;
             
             // Generate random positions anywhere on screen
-            const randomX = Math.random() * maxX;
-            const randomY = Math.random() * maxY;
+            const randomX = Math.max(20, Math.random() * maxX);
+            const randomY = Math.max(20, Math.random() * maxY);
             
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
@@ -310,13 +313,20 @@
         // Handle "Yes" button click
         yesBtn.addEventListener('click', () => {
             // Hide buttons
-            buttonContainer.style.display = 'none';
+            buttonWrapper.style.display = 'none';
             
             // Show success message
             successMessage.classList.add('active');
             
             // Show video
             videoContainer.classList.add('active');
+            
+            // Try to play and unmute the video
+            const video = document.getElementById('valentineVideo');
+            video.muted = false; // Unmute after user interaction
+            video.play().catch(err => {
+                console.log('Autoplay prevented:', err);
+            });
             
             // Launch fireworks
             launchFireworks();
@@ -334,12 +344,6 @@
                 clearInterval(fireworkInterval);
             }, 15000);
         });
-
-        // Initialize "No" button position
-        noBtn.style.position = 'fixed';
-        noBtn.style.left = '60%';
-        noBtn.style.top = '50%';
-        noBtn.style.transform = 'translate(-50%, -50%)';
     </script>
 </body>
 </html>
